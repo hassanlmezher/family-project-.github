@@ -29,7 +29,7 @@ app.use("/notifications", notificationRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error("❌ Unhandled error:", err);
+  console.error("Unhandled error:", err);
   res.status(500).json({ error: "Server error" });
 });
 
@@ -37,18 +37,19 @@ const PORT = process.env.PORT || 4000;
 
 const startServer = async () => {
   try {
-    console.log("🔄 Checking DB tables...");
+    console.log("Checking DB tables...");
     await ensureInviteAndNotificationTables();
-    console.log("✅ DB ready. Starting server...");
+    console.log("DB ready. Starting server...");
   } catch (error) {
-    console.error("❌ DB setup failed:", error);
+    console.error("DB setup failed:", error);
     console.log("Starting server without DB setup...");
   }
 
-  // ✅ Bind to 0.0.0.0 for CI to detect port 4000
+  // Bind to 0.0.0.0 for CI to detect port 4000
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 API running on http://0.0.0.0:${PORT}`);
+    console.log(`API running on http://0.0.0.0:${PORT}`);
   });
 };
 
 startServer();
+

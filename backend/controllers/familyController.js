@@ -71,7 +71,8 @@ export async function createFamily(req, res) {
     // refresh JWT with fid
     const tokenJwt = signJwt({ uid: req.user.uid, email: req.user.email, fid: fam.rows[0].id, role: 'admin' });
     res.json({ family: fam.rows[0], token: tokenJwt });
-  } catch {
+  } catch (err) {
+    console.error('Create family failed:', err.message || err);
     res.status(500).json({ error: 'Create family failed' });
   }
 }
