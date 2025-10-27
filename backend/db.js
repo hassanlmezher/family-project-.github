@@ -1,16 +1,25 @@
-import pkg from 'pg';
-
+import pkg from "pg";
 const { Pool } = pkg;
 
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-export const pool = new Pool({
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl:{ rejectUnauthorized: false }
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
-pool.on('connect', () => console.log('Postgres connected'));
+pool.on("connect", () => console.log("✅ Connected to Postgres"));
 
-pool.on('error', (e) => console.error('DB error', e));
+pool.on("error", (err) => {
+  console.error("❌ DB error", err);
+  process.exit(-1);
+});
+
+export async function q(text, params) {
+  const client = await pool.connect();
+  try {
+    return await client.query(text, params);
+  } finally {
+    client.release();
+  }
+}
+
+export default pool;

@@ -29,7 +29,6 @@ jobs:
     env:
       NODE_ENV: test
       PORT: 4000
-      # point the backend to the local service DB
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/familytest
       JWT_SECRET: test-ci-secret
 
@@ -42,8 +41,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install PM2 + wait-on globally
-        run: npm i -g pm2 wait-on
+      - name: Install PM2 and wait-on
+        run: npm install -g pm2 wait-on
 
       - name: Install backend dependencies
         working-directory: backend
@@ -56,13 +55,13 @@ jobs:
       - name: Wait for API health (up to 90s)
         run: npx wait-on --timeout 90000 http://localhost:4000/health
 
-      - name: Run backend tests (Jest)
+      - name: Run backend tests
         working-directory: backend
         run: npm test
 
       - name: Show PM2 logs on failure
         if: failure()
-        run: pm2 logs backend --lines 200 || true
+        run: pm2 logs backend --lines 100 || true
 
       - name: Stop PM2
         if: always()
