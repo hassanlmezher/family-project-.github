@@ -9,7 +9,7 @@ on:
 jobs:
   test-backend:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     env:
       NODE_ENV: test
@@ -19,17 +19,17 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16
         ports: ['5432:5432']
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: familytest
         options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
 
     steps:
       - name: 🛎 Checkout repository
@@ -44,20 +44,35 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: ⏳ Wait for Postgres
+        run: |
+          for i in {1..60}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "Postgres is ready"; break
+            fi
+            echo "Waiting for Postgres ($i)..."
+            sleep 1
+          done
+
       - name: ▶️ Start backend with PM2
         working-directory: backend
         run: |
-          npm install -g pm2 wait-on
+          npm i -g pm2 wait-on
           pm2 start server.js --name backend --update-env
-          echo "⏳ Waiting for server to start..."
-          npx wait-on tcp:4000 --timeout 60000
-          echo "✅ Server port is open"
-          sleep 3
-          curl -v http://localhost:4000/health
+          echo "⏳ Waiting for port 4000..."
+          npx wait-on tcp:4000 --timeout 90000
+          echo "✅ Port 4000 is open"
+          echo "⏳ Hitting /health..."
+          curl -fsS http://localhost:4000/health && echo "✅ /health OK"
 
       - name: 🧪 Run backend tests
         working-directory: backend
         run: npm test
 
+      - name: 🧾 PM2 logs on failure
+        if: failure()
+        run: pm2 logs backend --lines 200 || true
+
       - name: 🧹 Stop PM2
-        run: pm2 delete all || true
+        if: always()
+        run: pm2 delete backend || true
