@@ -48,22 +48,23 @@ jobs:
         run: |
           for i in {1..60}; do
             if pg_isready -h localhost -p 5432 -U postgres; then
-              echo "Postgres is ready"; break
+              echo "✅ Postgres is ready"
+              break
             fi
-            echo "Waiting for Postgres ($i)..."
+            echo "Waiting for Postgres... ($i)"
             sleep 1
           done
 
       - name: ▶️ Start backend with PM2
         working-directory: backend
         run: |
-          npm i -g pm2 wait-on
+          npm install -g pm2 wait-on
           pm2 start server.js --name backend --update-env
           echo "⏳ Waiting for port 4000..."
           npx wait-on tcp:4000 --timeout 90000
           echo "✅ Port 4000 is open"
-          echo "⏳ Hitting /health..."
-          curl -fsS http://localhost:4000/health && echo "✅ /health OK"
+          echo "🌐 Checking /health endpoint..."
+          curl -fsS http://localhost:4000/health || (pm2 logs backend --lines 100 && exit 1)
 
       - name: 🧪 Run backend tests
         working-directory: backend

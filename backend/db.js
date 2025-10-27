@@ -1,25 +1,24 @@
+// backend/db.js
 import pkg from "pg";
+import dotenv from "dotenv";
+dotenv.config({ path: process.env.NODE_ENV === "test" ? ".env.test" : ".env" });
+
 const { Pool } = pkg;
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  ssl: process.env.DATABASE_URL?.includes("supabase") ? { rejectUnauthorized: false } : false,
 });
 
-pool.on("connect", () => console.log("✅ Connected to Postgres"));
-
-pool.on("error", (err) => {
-  console.error("❌ DB error", err);
-  process.exit(-1);
-});
+pool.on("connect", () => console.log("✅ Database connected"));
+pool.on("error", (err) => console.error("❌ Database error:", err));
 
 export async function q(text, params) {
   const client = await pool.connect();
   try {
-    return await client.query(text, params);
+    const res = await client.query(text, params);
+    return res;
   } finally {
     client.release();
   }
 }
-
-export default pool;

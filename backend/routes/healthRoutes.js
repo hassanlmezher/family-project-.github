@@ -2,9 +2,12 @@
 import express from "express";
 const router = express.Router();
 
-// Keep CI health check simple: just report server is alive.
 router.get("/", (_req, res) => {
-  res.status(200).json({ ok: true });
+  res.status(200).json({
+    ok: true,
+    message: "Server is healthy",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 export default router;
