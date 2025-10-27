@@ -10,12 +10,19 @@
     "test": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --detectOpenHandles"
   },
   "dependencies": {
-    "express": "^5.1.0",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
-    "pg": "^8.13.3"
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.3",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.4",
     "nodemon": "^3.1.0"
   }
 }

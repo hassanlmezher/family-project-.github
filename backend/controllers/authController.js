@@ -1,5 +1,5 @@
 import { pool } from '../db.js';
-import bcrypt from 'bcrypt';
+import bcrypt from "bcryptjs";
 import { signJwt } from '../auth.js';
 
 export async function register(req, res) {

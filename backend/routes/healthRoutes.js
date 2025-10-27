@@ -1,8 +1,7 @@
-// backend/routes/healthRoutes.js
 import express from "express";
 const router = express.Router();
 
-router.get("/", (_req, res) => {
+router.get("/", (req, res) => {
   res.status(200).json({
     ok: true,
     message: "Server is healthy",
