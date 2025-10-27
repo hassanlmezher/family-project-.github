@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-// Load correct environment file (normal or test)
+// Load the correct environment file
 dotenv.config({ path: process.env.NODE_ENV === "test" ? ".env.test" : ".env" });
 
 // Routes
@@ -18,7 +18,6 @@ import { ensureInviteAndNotificationTables } from "./setup.js";
 
 const app = express();
 
-// Global middleware
 app.use(cors());
 app.use(express.json());
 
@@ -27,10 +26,10 @@ app.get("/", (_, res) =>
   res.json({ ok: true, name: "Family Shopping Planner API" })
 );
 
-// Health route (used by CI and monitoring)
+// Health check (used in CI)
 app.use("/health", healthRoutes);
 
-// App routes
+// Core routes
 app.use("/auth", authRoutes);
 app.use("/family", familyRoutes);
 app.use("/invites", inviteRoutes);
@@ -43,13 +42,14 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Server error" });
 });
 
-// ✅ Async startup function to safely run setup before server start
-async function startServer() {
+// ✅ Start the server only after DB setup is ready
+const PORT = process.env.PORT || 4000;
+
+(async () => {
   try {
-    // Ensure required tables exist
+    console.log("Setting up database tables...");
     await ensureInviteAndNotificationTables();
 
-    const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`✅ API running on http://localhost:${PORT}`);
     });
@@ -57,7 +57,4 @@ async function startServer() {
     console.error("❌ Failed to start server:", err);
     process.exit(1);
   }
-}
-
-// Start the server
-startServer();
+})();

@@ -5,7 +5,6 @@ const BASE = "http://localhost:4000";
 let token;
 
 beforeAll(async () => {
-  // Wait for server to be up
   await waitOn({ resources: [`${BASE}/health`], timeout: 20000 });
 });
 

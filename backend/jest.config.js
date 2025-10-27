@@ -1,6 +1,6 @@
 export default {
   testEnvironment: "node",
-  transform: {}, // disable Babel transformations
+  transform: {},
   moduleFileExtensions: ["js", "json", "node"],
   verbose: true
 };
