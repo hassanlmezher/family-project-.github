@@ -1,37 +1,63 @@
 import express from "express";
-import cors from 'cors';
-import dotenv from 'dotenv';
+import cors from "cors";
+import dotenv from "dotenv";
 
-dotenv.config();
+// Load correct environment file (normal or test)
+dotenv.config({ path: process.env.NODE_ENV === "test" ? ".env.test" : ".env" });
 
-import authRoutes from './routes/authRoutes.js'; 
-import familyRoutes from './routes/familyRoutes.js';
-import inviteRoutes from './routes/inviteRoutes.js';
-import listRoutes from './routes/listRoutes.js'; 
-import notificationRoutes from './routes/notificationRoutes.js'; 
-import { ensureInviteAndNotificationTables } from './setup.js';
+// Routes
+import authRoutes from "./routes/authRoutes.js";
+import familyRoutes from "./routes/familyRoutes.js";
+import inviteRoutes from "./routes/inviteRoutes.js";
+import listRoutes from "./routes/listRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import healthRoutes from "./routes/healthRoutes.js";
+
+// DB setup helper
+import { ensureInviteAndNotificationTables } from "./setup.js";
 
 const app = express();
 
+// Global middleware
 app.use(cors());
-
 app.use(express.json());
 
-app.get('/', (_, res) => 
-res.json({ ok: true, name: 'Family Shopping Planner API' })
+// Base route
+app.get("/", (_, res) =>
+  res.json({ ok: true, name: "Family Shopping Planner API" })
 );
 
-app.use('/auth', authRoutes);
-app.use('/family', familyRoutes);
-app.use('/invites', inviteRoutes);
-app.use('/lists', listRoutes);
-app.use('/notifications', notificationRoutes);
+// Health route (used by CI and monitoring)
+app.use("/health", healthRoutes);
 
+// App routes
+app.use("/auth", authRoutes);
+app.use("/family", familyRoutes);
+app.use("/invites", inviteRoutes);
+app.use("/lists", listRoutes);
+app.use("/notifications", notificationRoutes);
+
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error('Unhandled', err);
-  res.status(500).json({ error: 'Server error' });
+  console.error("Unhandled", err);
+  res.status(500).json({ error: "Server error" });
 });
 
-app.listen(process.env.PORT || 4000, () => {
-  console.log(`API on http://localhost:${process.env.PORT || 4000}`);
-});
+// ✅ Async startup function to safely run setup before server start
+async function startServer() {
+  try {
+    // Ensure required tables exist
+    await ensureInviteAndNotificationTables();
+
+    const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => {
+      console.log(`✅ API running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Failed to start server:", err);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
