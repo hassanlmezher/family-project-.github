@@ -3,12 +3,12 @@ import { useApp } from '../store';
 import api from '../api';
 import ItemCard from './ItemCard';
 
-export default function Dashboard({ goMembers, goArchives, archiveNow }: { goMembers: () => void; goArchives: () => void; archiveNow: () => Promise<void>; }) {
+export default function Dashboard({ goMembers, goArchives }: { goMembers: () => void; goArchives: () => void; }) {
   const familyId = useApp(s => s.familyId);
   const currentDay = useApp(s => s.currentDay);
   const lastAutoArchive = useApp(s => s.lastAutoArchive);
   const markAutoArchived = useApp(s => s.markAutoArchived);
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<{ id: number; name: string; quantity?: string; status: 'pending' | 'bought' | 'skipped'; added_by_name?: string }[]>([]);
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
 
@@ -88,8 +88,9 @@ function InvitePanel() {
       await api.createInvite(email.trim());
       setMessage('Invite sent successfully!');
       setEmail('');
-    } catch (e: any) {
-      setMessage('Failed to send invite: ' + (e?.response?.data?.error || 'Unknown error'));
+    } catch (e: unknown) {
+      const error = e as { response?: { data?: { error?: string } } };
+      setMessage('Failed to send invite: ' + (error?.response?.data?.error || 'Unknown error'));
     }
     setLoading(false);
   }
@@ -148,8 +149,9 @@ function SwitchFamily() {
       setMessage('Successfully joined family!');
       setTok('');
       go('home');
-    } catch (e: any) {
-      setMessage('Failed to join: ' + (e?.response?.data?.error || 'Invalid token'));
+    } catch (e: unknown) {
+      const error = e as { response?: { data?: { error?: string } } };
+      setMessage('Failed to join: ' + (error?.response?.data?.error || 'Invalid token'));
     }
     setLoading(false);
   }

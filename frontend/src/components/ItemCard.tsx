@@ -1,4 +1,4 @@
-export default function ItemCard({ item, onStatus, onDelete }: { item: any; onStatus: (s: 'pending'|'bought'|'skipped') => void; onDelete: () => void; }) {
+export default function ItemCard({ item, onStatus, onDelete }: { item: { id: number; name: string; quantity?: string; status: 'pending' | 'bought' | 'skipped'; added_by_name?: string }; onStatus: (s: 'pending'|'bought'|'skipped') => void; onDelete: () => void; }) {
   const getCardStyles = () => {
     switch (item.status) {
       case 'bought':

@@ -1,16 +1,11 @@
 import request from "supertest";
-import waitOn from "wait-on";
+import app from "../server.js";
 
-const BASE = "http://localhost:4000";
 let token;
-
-beforeAll(async () => {
-  await waitOn({ resources: [`${BASE}/health`], timeout: 20000 });
-});
 
 describe("Health check", () => {
   it("GET /health should return ok:true", async () => {
-    const res = await request(BASE).get("/health");
+    const res = await request(app).get("/health");
     expect(res.statusCode).toBe(200);
     expect(res.body.ok).toBe(true);
   });
@@ -22,15 +17,16 @@ describe("Auth and Family flow", () => {
   const fullName = "CI Bot";
 
   it("POST /auth/register → should register user", async () => {
-    const res = await request(BASE)
+    const res = await request(app)
       .post("/auth/register")
       .send({ fullName, email, password });
     expect(res.statusCode).toBe(200);
     expect(res.body.token).toBeDefined();
+    token = res.body.token;
   });
 
   it("POST /auth/login → should login user", async () => {
-    const res = await request(BASE)
+    const res = await request(app)
       .post("/auth/login")
       .send({ email, password });
     expect(res.statusCode).toBe(200);
@@ -39,7 +35,7 @@ describe("Auth and Family flow", () => {
   });
 
   it("POST /family/create → should create family for logged user", async () => {
-    const res = await request(BASE)
+    const res = await request(app)
       .post("/family/create")
       .set("Authorization", `Bearer ${token}`)
       .send({ nickname: "TestFam" });

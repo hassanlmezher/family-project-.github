@@ -14,8 +14,9 @@ export default function AuthLogin({ onSignup }: { onSignup: () => void }) {
     try {
       const { data } = await api.login({ email, password });
       setAuth({ token: data.token, user: data.user, familyId: data.familyId });
-    } catch (e: any) {
-      setErr(e?.response?.data?.error || 'Login failed');
+    } catch (e: unknown) {
+      const error = e as { response?: { data?: { error?: string } } };
+      setErr(error?.response?.data?.error || 'Login failed');
     }
   }, [email, password, setAuth]);
 

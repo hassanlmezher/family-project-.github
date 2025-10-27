@@ -1,17 +1,12 @@
-import { Router } from 'express';
+// backend/routes/familyRoutes.js
+import { Router } from "express";
+import { requireAuth } from "../auth.js";
+import { createFamily, getMyFamily, leaveFamily } from "../controllers/familyController.js";
 
-import { requireAuth } from '../auth.js';
+const router = Router();
 
-import { me, createFamily, leaveFamily, members } from '../controllers/familyController.js';
+router.post("/create", requireAuth, createFamily);
+router.get("/me", requireAuth, getMyFamily);
+router.post("/leave", requireAuth, leaveFamily);
 
-const r = Router();
-
-r.get('/me', requireAuth, me);
-
-r.get('/members', requireAuth, members);
-
-r.post('/create', requireAuth, createFamily);
-
-r.post('/leave', requireAuth, leaveFamily);
-
-export default r;
+export default router;

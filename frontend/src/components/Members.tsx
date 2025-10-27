@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '../api';
 
 export default function Members({ goBack }: { goBack: () => void }) {
-  const [me, setMe] = useState<any>(null);
-  const [members, setMembers] = useState<any[]>([]);
+  const [me, setMe] = useState<{ membership?: { token: string } } | null>(null);
+  const [members, setMembers] = useState<{ id: number; full_name: string; email: string; role: string }[]>([]);
 
   async function load() {
     const [{ data: meData }, { data: memList }] = await Promise.all([api.me(), api.members()]);
@@ -37,7 +37,7 @@ export default function Members({ goBack }: { goBack: () => void }) {
                   <p className="text-gray-400 text-sm">Share securely with anyone you want to invite directly.</p>
                 </div>
                 <button
-                  onClick={()=>navigator.clipboard.writeText(me.membership.token)}
+                  onClick={()=>navigator.clipboard.writeText(me.membership!.token)}
                   className="px-4 py-2 rounded-xl bg-linear-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +47,7 @@ export default function Members({ goBack }: { goBack: () => void }) {
                 </button>
               </div>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <input readOnly className="flex-1 p-4 rounded-xl border border-gray-700 bg-gray-800 text-white font-mono text-xs" value={me.membership.token}/>
+                <input readOnly className="flex-1 p-4 rounded-xl border border-gray-700 bg-gray-800 text-white font-mono text-xs" value={me.membership!.token}/>
               </div>
             </div>
           </>

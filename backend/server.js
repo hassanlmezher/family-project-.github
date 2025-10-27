@@ -19,7 +19,7 @@ app.use(express.json());
 // Root route
 app.get("/", (_, res) => res.json({ ok: true, message: "Family Shopping Planner API running" }));
 
-// Subroutes
+// Routes
 app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);
 app.use("/family", familyRoutes);
@@ -35,21 +35,20 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 4000;
 
-const startServer = async () => {
+async function start() {
   try {
-    console.log("Checking DB tables...");
+    console.log("Preparing database...");
     await ensureInviteAndNotificationTables();
-    console.log("DB ready. Starting server...");
-  } catch (error) {
-    console.error("DB setup failed:", error);
-    console.log("Starting server without DB setup...");
+    console.log("Database ready.");
+  } catch (err) {
+    console.error("Failed to prepare database:", err);
   }
 
-  // Bind to 0.0.0.0 for CI to detect port 4000
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`API running on http://0.0.0.0:${PORT}`);
   });
-};
+}
 
-startServer();
+start();
 
+export default app;

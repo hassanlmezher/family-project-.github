@@ -2,13 +2,19 @@ import { useEffect, useState } from 'react';
 import api from '../api';
 
 type ArchivedSummary = {
-  bought: any[];
-  skipped: any[];
+  bought: { id: number; name: string; quantity?: string; status: string; added_by_name?: string }[];
+  skipped: { id: number; name: string; quantity?: string; status: string; added_by_name?: string }[];
+};
+
+type ArchivedList = {
+  id: number;
+  week_start: string;
+  week_end: string;
 };
 
 export default function Archives({ goBack }: { goBack: () => void }) {
-  const [lists, setLists] = useState<any[]>([]);
-  const [selected, setSelected] = useState<any|null>(null);
+  const [lists, setLists] = useState<ArchivedList[]>([]);
+  const [selected, setSelected] = useState<ArchivedList | null>(null);
   const [summary, setSummary] = useState<ArchivedSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,7 +30,7 @@ export default function Archives({ goBack }: { goBack: () => void }) {
     })();
   }, []);
 
-  const openDetails = async (list: any) => {
+  const openDetails = async (list: ArchivedList) => {
     setSelected(list);
     setLoading(true);
     setSummary(null);
@@ -45,7 +51,7 @@ export default function Archives({ goBack }: { goBack: () => void }) {
     setError('');
   };
 
-  const renderItems = (title: string, items: any[], accent: string) => (
+  const renderItems = (title: string, items: { id: number; name: string; quantity?: string; status: string; added_by_name?: string }[], accent: string) => (
     <div className="rounded-2xl border border-slate-200/20 bg-slate-900/30 p-5">
       <div className={`text-sm font-semibold uppercase tracking-wide ${accent}`}>{title} ({items.length})</div>
       {items.length === 0 ? (

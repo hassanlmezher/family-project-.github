@@ -20,6 +20,7 @@ export async function register(req, res) {
     const token = signJwt({ uid: user.rows[0].id, email });
     res.json({ token, user: user.rows[0] });
   } catch (e) {
+    console.error('Register error:', e);
     res.status(500).json({ error: 'Register failed' });
   }
 }
