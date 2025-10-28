@@ -25,7 +25,7 @@ export type AppState = {
   resetAutoArchive: () => void;
 };
 
-export const useApp = create<AppState>()(persist((set, _get) => ({
+export const useApp = create<AppState>()(persist((set) => ({
   token: null,
   user: null,
   familyId: null,

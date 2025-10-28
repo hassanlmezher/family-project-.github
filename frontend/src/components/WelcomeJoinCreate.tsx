@@ -11,7 +11,12 @@ export default function WelcomeJoinCreate() {
 
   useEffect(() => { loadNotifications(); }, []);
   async function loadNotifications() {
-    try { const { data } = await notifyApi.list(); setNotifications(data); } catch {}
+    try {
+      const { data } = await notifyApi.list();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Failed to load notifications:', error);
+    }
   }
 
   async function createFamily() {

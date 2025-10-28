@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { useApp } from './store';
 
-const API = axios.create({
-  baseURL: 'http://localhost:4000',
-});
+const rawBaseUrl = (import.meta.env.VITE_API_URL ?? '').trim();
+const baseURL = rawBaseUrl ? rawBaseUrl.replace(/\/+$/, '') : '/api';
+
+const API = axios.create({ baseURL });
 
 export function setToken(t: string|null) {
   if (t) API.defaults.headers.common['Authorization'] = `Bearer ${t}`;
@@ -42,5 +43,4 @@ export const notifyApi = {
   list: () => API.get('/notifications'),
   markRead: (id: number) => API.post('/notifications/mark-read', { id })
 };
-
 

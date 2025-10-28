@@ -20,7 +20,12 @@ export default function Header() {
   }, [token]);
 
   async function refresh() {
-    try { const { data } = await axios.get('http://localhost:4000/notifications', { headers: { Authorization: `Bearer ${token}` } }); setList(data); } catch {}
+    try {
+      const { data } = await axios.get('http://localhost:4000/notifications', { headers: { Authorization: `Bearer ${token}` } });
+      setList(data);
+    } catch (error) {
+      console.error('Failed to refresh notifications:', error);
+    }
   }
 
   function initials() {

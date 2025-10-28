@@ -7,7 +7,6 @@ import Dashboard from './components/Dashboard';
 import Members from './components/Members';
 import Archives from './components/Archives';
 import Header from './components/Header';
-import api from './api';
 import './index.css';
 
 export default function App() {
@@ -50,9 +49,6 @@ export default function App() {
           <Dashboard
             goMembers={() => go('members')}
             goArchives={() => go('archives')}
-            archiveNow={async () => {
-              await api.archiveWeek();
-            }}
           />
         )}
         {view === 'members' && <Members goBack={() => go('home')} />}
