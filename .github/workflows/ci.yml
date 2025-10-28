@@ -100,6 +100,23 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Start backend
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          PORT: 4000
+          JWT_SECRET: ${{ secrets.BACKEND_JWT_SECRET }}
+          DATABASE_URL: ${{ secrets.BACKEND_DATABASE_URL }}
+          USE_IN_MEMORY_DB: "true"
+          ALLOW_DB_FALLBACK: "true"
+        run: |
+          nohup node server.js > ../backend.log 2>&1 &
+          npx wait-on --timeout 60000 http-get://localhost:4000/api/health
+
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
@@ -120,3 +137,7 @@ jobs:
       - name: Run Playwright tests
         working-directory: frontend
         run: npx playwright test --reporter=line
+
+      - name: Stop backend
+        if: always()
+        run: pkill -f "node server.js" || true
