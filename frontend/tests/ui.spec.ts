@@ -14,8 +14,7 @@ test("CRUD flow", async ({ page }) => {
   await page.getByTestId("signup-submit").click();
 
   // CREATE FAMILY
-  await page.getByTestId("create-family-input").waitFor({ state: "visible" });
-  await page.getByTestId("create-family-input").fill("Test Family");
+  await page.locator('input').nth(1).fill("Test Family");
   await page.getByRole("button", { name: "Create Family" }).click();
 
   // CREATE — add an item
