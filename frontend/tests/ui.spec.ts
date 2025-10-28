@@ -14,11 +14,12 @@ test("CRUD flow", async ({ page }) => {
   await page.getByTestId("signup-submit").click();
 
   // CREATE FAMILY
-  await expect(page.getByTestId("create-family-input")).toBeVisible();
+  await page.getByTestId("create-family-input").waitFor({ state: "visible" });
   await page.getByTestId("create-family-input").fill("Test Family");
   await page.getByRole("button", { name: "Create Family" }).click();
 
   // CREATE — add an item
+  await page.getByPlaceholder("Item name").waitFor({ state: "visible" });
   await page.fill('input[placeholder="Item name"]', "Milk");
   await page.fill('input[placeholder="Quantity"]', "2");
   await page.getByRole("button", { name: "Add Item" }).click();

@@ -7,21 +7,24 @@ on:
     branches: [ master ]
 
 jobs:
-  # 🧩 BACKEND TEST JOB
   test-backend:
+    name: Backend tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     env:
       NODE_ENV: test
       PORT: 4000
-      JWT_SECRET: test-ci-secret
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/familytest
+      JWT_SECRET: ${{ secrets.BACKEND_JWT_SECRET }}
+      DATABASE_URL: ${{ secrets.BACKEND_DATABASE_URL }}
+      USE_IN_MEMORY_DB: "true"
+      ALLOW_DB_FALLBACK: "true"
 
     services:
       postgres:
         image: postgres:16
-        ports: ['5432:5432']
+        ports:
+          - 5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -33,85 +36,87 @@ jobs:
           --health-retries=30
 
     steps:
-      - name: 🛎 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: 📦 Install backend dependencies
+      - name: Install backend dependencies
         working-directory: backend
         run: npm ci
 
-      - name: ⏳ Wait for Postgres
+      - name: Wait for Postgres
         run: |
           for i in {1..60}; do
             if pg_isready -h localhost -p 5432 -U postgres; then
-              echo "✅ Postgres is ready"
-              break
+              echo "Postgres is ready"
+              exit 0
             fi
             echo "Waiting for Postgres... ($i)"
             sleep 1
           done
+          echo "Postgres did not become ready in time"
+          exit 1
 
-      - name: ▶️ Start backend with PM2
+      - name: Start backend with PM2
         working-directory: backend
         run: |
           npm install -g pm2 wait-on
           pm2 start server.js --name backend --update-env
-          echo "⏳ Waiting for port 4000..."
+          echo "Waiting for backend port 4000..."
           npx wait-on tcp:4000 --timeout 90000
-          echo "✅ Port 4000 is open"
-          echo "🌐 Checking /health endpoint..."
-          curl -fsS http://localhost:4000/health || (pm2 logs backend --lines 100 && exit 1)
+          echo "Port 4000 is open"
+          echo "Waiting for /api/health..."
+          npx wait-on --timeout 60000 http-get://localhost:4000/api/health
+          curl -fsS http://localhost:4000/api/health
 
-      - name: 🧪 Run backend tests
+      - name: Run backend tests
         working-directory: backend
         run: npm test
 
-      - name: 🧾 PM2 logs on failure
+      - name: PM2 logs on failure
         if: failure()
-        run: pm2 logs backend --lines 200 || true
+        run: pm2 logs backend --lines 200 --nostream || true
 
-      - name: 🧹 Stop PM2
+      - name: Stop PM2
         if: always()
         run: pm2 delete backend || true
 
-
-  # 🎭 FRONTEND TEST JOB (Playwright)
   test-frontend:
-    needs: test-backend   # Run only after backend passes
+    name: Frontend tests
+    needs: test-backend
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: 🛎 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: 📦 Install frontend dependencies
+      - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
 
-      - name: 🎭 Install Playwright browsers
+      - name: Install Playwright browsers
         working-directory: frontend
         run: npx playwright install --with-deps
 
-      - name: ▶️ Start frontend
+      - name: Start frontend
         working-directory: frontend
         run: |
           npm run build
           npx serve -s dist -l 5173 &
-          echo "⏳ Waiting for frontend to start..."
+          echo "Waiting for frontend to start..."
           npx wait-on http://localhost:5173
-          echo "✅ Frontend is live at port 5173"
+          echo "Frontend is live at port 5173"
 
-      - name: 🧪 Run Playwright tests
+      - name: Run Playwright tests
         working-directory: frontend
         run: npx playwright test --reporter=line

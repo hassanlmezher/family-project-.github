@@ -1,8 +1,12 @@
 import { pool } from "./db.js";
 
 export async function ensureInviteAndNotificationTables() {
-  if (process.env.NODE_ENV === "test" || !process.env.DATABASE_URL) {
-    console.log("✅ Database tables ensured (in-memory for tests)");
+  if (
+    process.env.NODE_ENV === "test" ||
+    process.env.USE_IN_MEMORY_DB === "true" ||
+    !process.env.DATABASE_URL
+  ) {
+    console.log("Database tables ensured (in-memory)");
     return;
   }
 
@@ -85,15 +89,14 @@ export async function ensureInviteAndNotificationTables() {
         );
       `);
 
-      console.log("✅ Database tables ensured");
+      console.log("Database tables ensured on primary database");
     } catch (err) {
-      console.error("❌ ensureInviteAndNotificationTables failed:", err);
+      console.error("ensureInviteAndNotificationTables failed:", err);
       throw err;
     } finally {
       client.release();
     }
   } catch (err) {
-    console.error("❌ Failed to connect to database:", err);
-    // Don't throw, just log for now to allow server to start
+    console.error("Failed to connect to database:", err);
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api, { notifyApi } from '../api';
 import { useApp } from '../store';
 
@@ -9,15 +9,21 @@ export default function WelcomeJoinCreate() {
   const [token, setToken] = useState('');
   const [notifications, setNotifications] = useState<Array<{ id: number; message: string; token: string; read: boolean }>>([]);
 
-  useEffect(() => { loadNotifications(); }, []);
-  async function loadNotifications() {
+  const loadNotifications = useCallback(async () => {
     try {
       const { data } = await notifyApi.list();
       setNotifications(data);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     }
-  }
+  }, []);
+
+  useEffect(() => { loadNotifications(); }, [loadNotifications]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => { void loadNotifications(); }, 5000);
+    return () => window.clearInterval(id);
+  }, [loadNotifications]);
 
   async function createFamily() {
     const { data } = await api.createFamily(familyName);
