@@ -15,7 +15,7 @@ jobs:
     env:
       NODE_ENV: test
       PORT: 4000
-      JWT_SECRET: ${{ secrets.BACKEND_JWT_SECRET }}
+      JWT_SECRET: ${{ secrets.BACKEND_JWT_SECRET  }}
       DATABASE_URL: ${{ secrets.BACKEND_DATABASE_URL }}
       USE_IN_MEMORY_DB: "true"
       ALLOW_DB_FALLBACK: "true"
