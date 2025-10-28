@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../store';
-import axios from 'axios';
+import { notifyApi } from '../api';
 
 type Notification = { id: number; message: string; token?: string; created_at: string; read: boolean };
 
@@ -21,7 +21,7 @@ export default function Header() {
 
   async function refresh() {
     try {
-      const { data } = await axios.get('http://localhost:4000/notifications', { headers: { Authorization: `Bearer ${token}` } });
+      const { data } = await notifyApi.list();
       setList(data);
     } catch (error) {
       console.error('Failed to refresh notifications:', error);
@@ -89,7 +89,15 @@ export default function Header() {
                             </div>
                           )}
                           {!n.read && (
-                            <button className="mt-3 text-xs px-3 py-1.5 rounded-full border border-gray-600 text-gray-400 hover:bg-gray-700 transition-colors" onClick={async () => { await axios.post('http://localhost:4000/notifications/mark-read', { id: n.id }, { headers: { Authorization: `Bearer ${token}` } }); await refresh(); }}>Mark read</button>
+                            <button
+                              className="mt-3 text-xs px-3 py-1.5 rounded-full border border-gray-600 text-gray-400 hover:bg-gray-700 transition-colors"
+                              onClick={async () => {
+                                await notifyApi.markRead(n.id);
+                                await refresh();
+                              }}
+                            >
+                              Mark read
+                            </button>
                           )}
                           <div className="text-xs mt-2 text-gray-500">{new Date(n.created_at).toLocaleString()}</div>
                         </div>

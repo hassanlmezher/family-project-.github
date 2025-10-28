@@ -11,6 +11,7 @@ export default function Dashboard({ goMembers, goArchives }: { goMembers: () => 
   const [items, setItems] = useState<{ id: number; name: string; quantity?: string; status: 'pending' | 'bought' | 'skipped'; added_by_name?: string }[]>([]);
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
+  const [addError, setAddError] = useState('');
 
   async function load() {
     const { data } = await api.currentList();
@@ -31,10 +32,16 @@ export default function Dashboard({ goMembers, goArchives }: { goMembers: () => 
 
   async function add() {
     if (!name.trim()) return;
-    const { data } = await api.addItem({ name, quantity: qty });
-    setItems([data, ...items]);
-    setName('');
-    setQty('');
+    setAddError('');
+    try {
+      const { data } = await api.addItem({ name, quantity: qty });
+      setItems([data, ...items]);
+      setName('');
+      setQty('');
+    } catch (e: unknown) {
+      const error = e as { response?: { data?: { error?: string } } };
+      setAddError(error?.response?.data?.error || 'Failed to add item');
+    }
   }
 
   async function setStatus(id: number, s: 'pending'|'bought'|'skipped') {
@@ -57,6 +64,11 @@ export default function Dashboard({ goMembers, goArchives }: { goMembers: () => 
           <input className="w-full p-3 rounded-xl border text-sm md:text-base" placeholder="Item name" value={name} onChange={e => setName(e.target.value)} />
           <input className="w-full p-3 rounded-xl border text-sm md:text-base" placeholder="Quantity" value={qty} onChange={e => setQty(e.target.value)} />
           <button onClick={add} className="w-full px-4 py-3 rounded-xl bg-cyan-600 text-white text-sm md:text-base">Add Item</button>
+          {addError && (
+            <div className="rounded-xl border border-rose-400/40 bg-rose-500/15 px-4 py-3 text-sm font-medium text-rose-100">
+              {addError}
+            </div>
+          )}
         </div>
         {items.map(it => (
           <ItemCard key={it.id} item={it} onStatus={(s) => setStatus(it.id, s)} onDelete={() => del(it.id)} />

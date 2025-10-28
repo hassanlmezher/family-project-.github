@@ -1,5 +1,8 @@
+/* ✅ 1. Font import must come first */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* ✅ 2. Tailwind import comes after fonts */
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   color-scheme: light dark;
@@ -23,7 +26,8 @@ button {
   transition: all 0.2s ease;
 }
 
-input, button {
+input,
+button {
   outline: none;
 }
 

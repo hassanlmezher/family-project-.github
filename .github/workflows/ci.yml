@@ -1,4 +1,4 @@
-name: Backend CI
+name: Fullstack CI
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
+  # 🧩 BACKEND TEST JOB
   test-backend:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -40,7 +41,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: 📦 Install dependencies
+      - name: 📦 Install backend dependencies
         working-directory: backend
         run: npm ci
 
@@ -77,3 +78,40 @@ jobs:
       - name: 🧹 Stop PM2
         if: always()
         run: pm2 delete backend || true
+
+
+  # 🎭 FRONTEND TEST JOB (Playwright)
+  test-frontend:
+    needs: test-backend   # Run only after backend passes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 🛎 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 📦 Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: 🎭 Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps
+
+      - name: ▶️ Start frontend
+        working-directory: frontend
+        run: |
+          npm run build
+          npx serve -s dist -l 5173 &
+          echo "⏳ Waiting for frontend to start..."
+          npx wait-on http://localhost:5173
+          echo "✅ Frontend is live at port 5173"
+
+      - name: 🧪 Run Playwright tests
+        working-directory: frontend
+        run: npx playwright test --reporter=line

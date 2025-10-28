@@ -8,7 +8,7 @@ const { Pool } = pkg;
 
 let pool;
 
-if (process.env.NODE_ENV === "test") {
+if (process.env.NODE_ENV === "test" || !process.env.DATABASE_URL) {
   const db = newDb();
   db.public.none(`
     CREATE TABLE users (

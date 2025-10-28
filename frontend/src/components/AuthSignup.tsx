@@ -100,6 +100,7 @@ export default function AuthSignup({ onLogin }: { onLogin: () => void }) {
 
             <button
               type="submit"
+              data-testid="signup-submit"
               className="w-full rounded-xl bg-linear-to-r from-indigo-500 via-cyan-500 to-emerald-500 px-5 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-cyan-500/40 transition-transform duration-200 hover:-translate-y-0.5"
             >
               Sign Up

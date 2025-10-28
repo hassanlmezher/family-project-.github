@@ -12,6 +12,21 @@ function getCurrentDay() {
   return new Date().toLocaleString('en-US', { weekday: 'long' });
 }
 
+async function ensureCurrentList(fid) {
+  const { weekStart, weekEnd } = saturdayRange();
+
+  // Check if a current list already exists
+  const existingList = await pool.query('select * from lists where family_id=$1 and archived_at is null', [fid]);
+  if (!existingList.rowCount) {
+    // Insert new list if none exists
+    await pool.query(
+      `insert into lists(family_id,week_start,week_end)
+       values($1,$2,$3)`,
+      [fid, formatISO(weekStart, { representation: 'date' }), formatISO(weekEnd, { representation: 'date' })]
+    );
+  }
+}
+
 async function archiveCurrentList(fid) {
   const client = await pool.connect();
   try {
@@ -50,34 +65,56 @@ export async function getCurrentList(req, res) {
   const { fid } = req.user;
   if (!fid) return res.json({ list: null, items: [] });
 
-  const { weekStart, weekEnd } = saturdayRange();
-  await pool.query(
-    `insert into lists(family_id,week_start,week_end)
-     values($1,$2,$3)
-     on conflict (family_id) where archived_at is null do nothing`,
-    [fid, formatISO(weekStart, { representation: 'date' }), formatISO(weekEnd, { representation: 'date' })]
-  );
+  try {
+    const { weekStart, weekEnd } = saturdayRange();
 
-  const list = await pool.query('select * from lists where family_id=$1 and archived_at is null', [fid]);
-  const items = await pool.query(
-    `select it.*, u.full_name as added_by_name
-     from items it left join users u on u.id=it.added_by
-     where it.list_id=$1 order by it.id desc`,
-    [list.rows[0].id]
-  );
-  res.json({ list: list.rows[0], items: items.rows });
+    // Check if a current list already exists
+    const existingList = await pool.query('select * from lists where family_id=$1 and archived_at is null', [fid]);
+    if (!existingList.rowCount) {
+      // Insert new list if none exists
+      await pool.query(
+        `insert into lists(family_id,week_start,week_end)
+         values($1,$2,$3)`,
+        [fid, formatISO(weekStart, { representation: 'date' }), formatISO(weekEnd, { representation: 'date' })]
+      );
+    }
+
+    const list = await pool.query('select * from lists where family_id=$1 and archived_at is null', [fid]);
+    if (!list.rowCount) return res.status(500).json({ error: 'Server error' });
+
+    const items = await pool.query(
+      `select it.*, u.full_name as added_by_name
+       from items it left join users u on u.id=it.added_by
+       where it.list_id=$1 order by it.id desc`,
+      [list.rows[0].id]
+    );
+    res.json({ list: list.rows[0], items: items.rows });
+  } catch (err) {
+    console.error('Error in getCurrentList:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 }
 
 export async function addItem(req, res) {
   const { fid, uid } = req.user;
   const { name, quantity } = req.body;
-  const list = await pool.query('select id from lists where family_id=$1 and archived_at is null', [fid]);
-  if (!list.rowCount) return res.status(400).json({ error: 'No current list' });
-  const q = await pool.query(
-    'insert into items(list_id,name,quantity,added_by) values($1,$2,$3,$4) returning *',
-    [list.rows[0].id, name, quantity || null, uid]
-  );
-  res.json(q.rows[0]);
+
+  try {
+    // Ensure a current list exists
+    await ensureCurrentList(fid);
+
+    const list = await pool.query('select id from lists where family_id=$1 and archived_at is null', [fid]);
+    if (!list.rowCount) return res.status(400).json({ error: 'No current list' });
+
+    const q = await pool.query(
+      'insert into items(list_id,name,quantity,added_by) values($1,$2,$3,$4) returning *',
+      [list.rows[0].id, name, quantity || null, uid]
+    );
+    res.json(q.rows[0]);
+  } catch (err) {
+    console.error('Error in addItem:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 }
 
 export async function updateItem(req, res) {

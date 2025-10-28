@@ -20,12 +20,12 @@ app.use(express.json());
 app.get("/", (_, res) => res.json({ ok: true, message: "Family Shopping Planner API running" }));
 
 // Routes
-app.use("/health", healthRoutes);
-app.use("/auth", authRoutes);
-app.use("/family", familyRoutes);
-app.use("/invites", inviteRoutes);
-app.use("/lists", listRoutes);
-app.use("/notifications", notificationRoutes);
+app.use("/api/health", healthRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/family", familyRoutes);
+app.use("/api/invites", inviteRoutes);
+app.use("/api/lists", listRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {

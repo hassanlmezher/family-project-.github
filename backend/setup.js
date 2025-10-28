@@ -1,7 +1,7 @@
 import { pool } from "./db.js";
 
 export async function ensureInviteAndNotificationTables() {
-  if (process.env.NODE_ENV === "test") {
+  if (process.env.NODE_ENV === "test" || !process.env.DATABASE_URL) {
     console.log("✅ Database tables ensured (in-memory for tests)");
     return;
   }

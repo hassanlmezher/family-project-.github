@@ -52,7 +52,13 @@ export default function WelcomeJoinCreate() {
       <div className="bg-white dark:bg-black/80 p-6 rounded-2xl shadow">
         <h3 className="text-xl font-semibold mb-2">Create Your Own Family</h3>
         <p className="opacity-70 mb-4">Start fresh with a new family group</p>
-        <input className="w-full p-3 rounded-xl border mb-4" value={familyName} onChange={e=>setFamilyName(e.target.value)} />
+        <input
+          className="w-full p-3 rounded-xl border mb-4"
+          placeholder="Family nickname"
+          data-testid="create-family-input"
+          value={familyName}
+          onChange={e=>setFamilyName(e.target.value)}
+        />
         <button onClick={createFamily} className="w-full p-3 rounded-xl bg-green-600 text-white">Create Family</button>
       </div>
     </div>
