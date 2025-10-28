@@ -13,6 +13,9 @@ test("CRUD flow", async ({ page }) => {
   await page.fill('input[placeholder="Create a password"]', "password123");
   await page.getByTestId("signup-submit").click();
 
+  // Wait for welcome page
+  await page.waitForSelector('text=Create Your Own Family');
+
   // CREATE FAMILY
   await page.locator('input').nth(1).fill("Test Family");
   await page.getByRole("button", { name: "Create Family" }).click();
